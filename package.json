@@ -1,7 +1,7 @@
 {
-	"name": "@gramio/posthog",
-	"version": "0.0.2",
-	"description": "Posthog plugin for GramIO",
+	"name": "@gramio/rate-limit",
+	"version": "0.0.1",
+	"description": "Rate-limit plugin for GramIO (sliding-window, pluggable storage)",
 	"main": "dist/index.cjs",
 	"module": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -20,12 +20,15 @@
 	"type": "module",
 	"author": "kravets",
 	"license": "MIT",
-	"readme": "https://gramio.dev/plugins/official/posthog",
-	"homepage": "https://github.com/gramiojs/posthog",
+	"readme": "https://gramio.dev/plugins/official/rate-limit",
+	"homepage": "https://github.com/gramiojs/rate-limit",
 	"keywords": [
 		"gramio",
 		"gramio-plugin",
-		"posthog",
+		"rate-limit",
+		"rate-limiter",
+		"anti-spam",
+		"sliding-window",
 		"telegram",
 		"telegram-bot-api"
 	],
@@ -36,14 +39,14 @@
 	},
 	"peerDependencies": {
 		"gramio": ">=0.0.39 <1.0.0",
-		"posthog-node": "^4.14.0"
+		"@gramio/storage": ">=2.0.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
+		"@gramio/storage": "^2.0.1",
 		"@types/bun": "^1.1.14",
-		"gramio": "^0.4.3",
+		"gramio": "^0.5.0",
 		"pkgroll": "^2.5.1",
-		"posthog-node": "^4.14.0",
 		"typescript": "^5.7.2"
 	},
 	"files": ["dist"]
