@@ -10,7 +10,6 @@ Rate-limit plugin for [GramIO](https://gramio.dev). Protects your bot handlers f
 ```ts
 import { Bot } from "gramio";
 import { rateLimitPlugin } from "@gramio/rate-limit";
-import { inMemoryStorage } from "@gramio/storage";
 
 const bot = new Bot(process.env.BOT_TOKEN!)
     .extend(
@@ -23,14 +22,19 @@ const bot = new Bot(process.env.BOT_TOKEN!)
         }),
     );
 
-bot.command("pay", async (ctx) => {
-    if (!await ctx.rateLimit({ id: "pay", limit: 3, window: 60 })) return;
-    // process payment...
+// Per-handler options — the macro runs before the handler body:
+bot.command("pay", (ctx) => { /* process payment */ }, {
+    rateLimit: { limit: 3, window: 60 },
 });
 
-bot.command("help", async (ctx) => {
-    if (!await ctx.rateLimit({ id: "help", limit: 20, window: 60 })) return;
-    await ctx.reply("Help text here");
+bot.command("help", (ctx) => ctx.reply("Help!"), {
+    rateLimit: {
+        id: "help",
+        limit: 20,
+        window: 60,
+        // Per-handler override (ctx is typed as the handler's context):
+        onLimitExceeded: (ctx) => ctx.reply("Too many /help requests!"),
+    },
 });
 
 await bot.start();

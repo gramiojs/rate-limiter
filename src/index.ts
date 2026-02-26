@@ -6,6 +6,7 @@
 import type { BotLike, Context } from "@gramio/contexts";
 import { inMemoryStorage } from "@gramio/storage";
 import type { Storage } from "@gramio/storage";
+import type { ContextCallback } from "gramio";
 import { Plugin } from "gramio";
 
 export type { Storage };
@@ -17,10 +18,26 @@ export interface RateLimitOptions {
 	window: number;
 	/**
 	 * Optional identifier to keep counters separate per handler.
-	 * Useful when multiple handlers have different limits for the same user.
 	 * @example "pay", "help", "subscribe"
 	 */
 	id?: string;
+	/**
+	 * Per-handler callback invoked when the limit is exceeded.
+	 * Receives the properly-typed handler context — takes precedence over
+	 * the global `onLimitExceeded` from plugin options.
+	 *
+	 * @example
+	 * ```ts
+	 * bot.command("pay", handler, {
+	 *     rateLimit: {
+	 *         limit: 3,
+	 *         window: 60,
+	 *         onLimitExceeded: (ctx) => ctx.reply("Slow down!"),
+	 *     },
+	 * });
+	 * ```
+	 */
+	onLimitExceeded?: ContextCallback;
 }
 
 export interface RateLimitPluginOptions {
@@ -35,7 +52,8 @@ export interface RateLimitPluginOptions {
 	 */
 	key?: (ctx: Context<BotLike>) => string | number | undefined;
 	/**
-	 * Called when the rate limit is exceeded.
+	 * Global fallback called when the limit is exceeded and no per-handler
+	 * `onLimitExceeded` was provided.
 	 * Use `ctx.is("message")` to narrow the context before calling `ctx.reply()`.
 	 *
 	 * @example
@@ -93,7 +111,7 @@ async function checkSlidingWindow(
 /**
  * Rate-limit plugin for GramIO.
  *
- * Injects a `rateLimit(options)` helper into every handler context.
+ * Registers a `rateLimit` macro that can be passed as a handler option.
  * Uses a sliding-window algorithm backed by any `@gramio/storage`-compatible adapter.
  *
  * @example
@@ -108,14 +126,18 @@ async function checkSlidingWindow(
  *         },
  *     }));
  *
- * bot.command("pay", async (ctx) => {
- *     if (!await ctx.rateLimit({ id: "pay", limit: 3, window: 60 })) return;
- *     // process payment...
+ * bot.command("pay", handler, {
+ *     rateLimit: { limit: 3, window: 60 },
  * });
  *
- * bot.command("help", async (ctx) => {
- *     if (!await ctx.rateLimit({ id: "help", limit: 20, window: 60 })) return;
- *     await ctx.reply("Help text here");
+ * bot.command("help", handler, {
+ *     rateLimit: {
+ *         id: "help",
+ *         limit: 20,
+ *         window: 60,
+ *         // per-handler override with properly-typed ctx:
+ *         onLimitExceeded: (ctx) => ctx.reply("Help is rate-limited too!"),
+ *     },
  * });
  *
  * await bot.start();
@@ -125,31 +147,32 @@ export function rateLimitPlugin(opts: RateLimitPluginOptions = {}) {
 	const storage = opts.storage ?? inMemoryStorage();
 	const getKey = opts.key ?? defaultKey;
 
-	return new Plugin("@gramio/rate-limit").derive(async (ctx) => ({
-		/**
-		 * Check whether the current user/chat is within the rate limit.
-		 * Returns `true` if the request is allowed, `false` if it is blocked.
-		 * When blocked, `onLimitExceeded` is called automatically.
-		 */
-		rateLimit: async (rateLimitOpts: RateLimitOptions): Promise<boolean> => {
-			const entityKey = getKey(ctx);
-			if (entityKey == null) return true;
+	return new Plugin("@gramio/rate-limit").macro(
+		"rateLimit",
+		(macroOpts: RateLimitOptions) => ({
+			preHandler: async (ctx, next) => {
+				const entityKey = getKey(ctx);
+				if (entityKey == null) return next();
 
-			const keyId = rateLimitOpts.id ?? "default";
-			const storageKey = `rl:${keyId}:${entityKey}`;
+				const storageKey = `rl:${macroOpts.id ?? "default"}:${entityKey}`;
 
-			const allowed = await checkSlidingWindow(
-				storage,
-				storageKey,
-				rateLimitOpts.limit,
-				rateLimitOpts.window * 1000,
-			);
+				const allowed = await checkSlidingWindow(
+					storage,
+					storageKey,
+					macroOpts.limit,
+					macroOpts.window * 1000,
+				);
 
-			if (!allowed) {
-				await opts.onLimitExceeded?.(ctx);
-				return false;
-			}
-			return true;
-		},
-	}));
+				if (!allowed) {
+					if (macroOpts.onLimitExceeded) {
+						await macroOpts.onLimitExceeded(ctx as never);
+					} else {
+						await opts.onLimitExceeded?.(ctx);
+					}
+					return;
+				}
+				return next();
+			},
+		}),
+	);
 }

@@ -45,7 +45,7 @@
 		"@biomejs/biome": "^1.9.4",
 		"@gramio/storage": "^2.0.1",
 		"@types/bun": "^1.1.14",
-		"gramio": "^0.5.0",
+		"gramio": "/Users/kravets/Projects/OPENSOURCE/GRAMIO/core",
 		"pkgroll": "^2.5.1",
 		"typescript": "^5.7.2"
 	},
