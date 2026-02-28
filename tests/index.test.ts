@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { TelegramTestEnvironment } from "@gramio/test";
 import { inMemoryStorage } from "@gramio/storage";
 import { Bot } from "gramio";
@@ -187,7 +187,7 @@ describe("onLimitExceeded", () => {
 			rateLimit: {
 				limit: 1,
 				window: 60,
-				onLimitExceeded: (с) => { perHandlerCalled = true; },
+				onLimitExceeded: () => { perHandlerCalled = true; },
 			},
 		});
 

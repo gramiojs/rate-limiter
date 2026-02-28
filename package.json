@@ -39,16 +39,16 @@
 		"lint:fix": "bun lint --write"
 	},
 	"peerDependencies": {
+		"@gramio/storage": ">=2.0.0",
 		"gramio": ">=0.0.39 <1.0.0",
-		"@gramio/storage": ">=2.0.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
 		"@gramio/storage": "^2.0.1",
 		"@gramio/test": "^0.3.0",
 		"@types/bun": "^1.1.14",
-		"gramio": "/Users/kravets/Projects/OPENSOURCE/GRAMIO/core",
 		"pkgroll": "^2.5.1",
+		"gramio": "^0.6.0",
 		"typescript": "^5.7.2"
 	},
 	"files": ["dist"]
