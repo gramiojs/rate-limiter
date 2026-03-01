@@ -2,12 +2,12 @@ import { describe, expect, it } from "bun:test";
 import { TelegramTestEnvironment } from "@gramio/test";
 import { inMemoryStorage } from "@gramio/storage";
 import { Bot } from "gramio";
-import { rateLimitPlugin } from "../src/index.ts";
+import { rateLimit } from "../src/index.ts";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-function makeBot(pluginOpts: Parameters<typeof rateLimitPlugin>[0] = {}) {
-	return new Bot("test").extend(rateLimitPlugin(pluginOpts));
+function makeBot(pluginOpts: Parameters<typeof rateLimit>[0] = {}) {
+	return new Bot("test").extend(rateLimit(pluginOpts));
 }
 
 // ─── sliding-window (core algorithm) ────────────────────────────────────────

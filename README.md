@@ -9,11 +9,11 @@ Rate-limit plugin for [GramIO](https://gramio.dev). Protects your bot handlers f
 
 ```ts
 import { Bot } from "gramio";
-import { rateLimitPlugin } from "@gramio/rate-limit";
+import { rateLimit } from "@gramio/rate-limit";
 
 const bot = new Bot(process.env.BOT_TOKEN!)
     .extend(
-        rateLimitPlugin({
+        rateLimit({
             // Optional: bring your own storage (Redis, SQLite, Cloudflare KV…)
             // storage: redisStorage(redis),
             onLimitExceeded: async (ctx) => {

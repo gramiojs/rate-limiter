@@ -117,10 +117,10 @@ async function checkSlidingWindow(
  * @example
  * ```ts
  * import { Bot } from "gramio";
- * import { rateLimitPlugin } from "@gramio/rate-limit";
+ * import { rateLimit } from "@gramio/rate-limit";
  *
  * const bot = new Bot(process.env.BOT_TOKEN!)
- *     .extend(rateLimitPlugin({
+ *     .extend(rateLimit({
  *         onLimitExceeded: async (ctx) => {
  *             if (ctx.is("message")) await ctx.reply("Too many requests, please wait.");
  *         },
@@ -143,7 +143,7 @@ async function checkSlidingWindow(
  * await bot.start();
  * ```
  */
-export function rateLimitPlugin(opts: RateLimitPluginOptions = {}) {
+export function rateLimit(opts: RateLimitPluginOptions = {}) {
 	const storage = opts.storage ?? inMemoryStorage();
 	const getKey = opts.key ?? defaultKey;
 
